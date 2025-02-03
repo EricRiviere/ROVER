@@ -9,11 +9,11 @@ return new class extends Migration {
     {
         Schema::create('missions', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('rover_id')->constrained()->onDelete('cascade');
-            $table->foreignId('map_id')->constrained()->onDelete('cascade');
-            $table->json('position'); // {"x": 10, "y": 15}
-            $table->enum('status', ['in_progress', 'completed']);
-            $table->json('commands')->nullable(); // [{"command": "F", "position": {"x": 10, "y": 16}}]
+            $table->foreignId('rover_id')->constrained();
+            $table->foreignId('map_id')->constrained();
+            $table->integer('x')->check('x BETWEEN 100 AND 200');
+            $table->integer('y')->check('y BETWEEN 100 AND 200');
+            $table->json('movements')->nullable();
             $table->timestamps();
         });
     }
@@ -23,5 +23,6 @@ return new class extends Migration {
         Schema::dropIfExists('missions');
     }
 };
+
 
 

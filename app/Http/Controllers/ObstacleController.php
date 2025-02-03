@@ -9,7 +9,11 @@ class ObstacleController extends Controller
 {
     public function index()
     {
-        return response()->json(Obstacle::all());
+        try {
+            return response()->json(Obstacle::all());
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 400);
+        }
     }
 
     public function store(Request $request)
@@ -20,13 +24,21 @@ class ObstacleController extends Controller
             'y' => 'required|integer',
         ]);
 
-        $obstacle = Obstacle::create($request->all());
-        return response()->json($obstacle, 201);
+        try {
+            $obstacle = Obstacle::create($request->all());
+            return response()->json($obstacle, 201);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 400);
+        }
     }
 
     public function show(Obstacle $obstacle)
     {
-        return response()->json($obstacle);
+        try {
+            return response()->json($obstacle);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 400);
+        }
     }
 
     public function update(Request $request, Obstacle $obstacle)
@@ -36,14 +48,23 @@ class ObstacleController extends Controller
             'y' => 'integer',
         ]);
 
-        $obstacle->update($request->all());
-        return response()->json($obstacle);
+        try {
+            $obstacle->update($request->all());
+            return response()->json($obstacle);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 400);
+        }
     }
 
     public function destroy(Obstacle $obstacle)
     {
-        $obstacle->delete();
-        return response()->json(null, 204);
+        try {
+            $obstacle->delete();
+            return response()->json(null, 204);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 400);
+        }
     }
 }
+
 

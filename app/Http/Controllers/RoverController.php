@@ -9,7 +9,11 @@ class RoverController extends Controller
 {
     public function index()
     {
-        return response()->json(Rover::all());
+        try {
+            return response()->json(Rover::all());
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 400);
+        }
     }
 
     public function store(Request $request)
@@ -23,13 +27,21 @@ class RoverController extends Controller
             'map_id' => 'nullable|exists:maps,id',
         ]);
 
-        $rover = Rover::create($request->all());
-        return response()->json($rover, 201);
+        try {
+            $rover = Rover::create($request->all());
+            return response()->json($rover, 201);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 400);
+        }
     }
 
     public function show(Rover $rover)
     {
-        return response()->json($rover);
+        try {
+            return response()->json($rover);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 400);
+        }
     }
 
     public function update(Request $request, Rover $rover)
@@ -43,14 +55,23 @@ class RoverController extends Controller
             'map_id' => 'nullable|exists:maps,id',
         ]);
 
-        $rover->update($request->all());
-        return response()->json($rover);
+        try {
+            $rover->update($request->all());
+            return response()->json($rover);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 400);
+        }
     }
 
     public function destroy(Rover $rover)
     {
-        $rover->delete();
-        return response()->json(null, 204);
+        try {
+            $rover->delete();
+            return response()->json(null, 204);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 400);
+        }
     }
 }
+
 

@@ -14,6 +14,19 @@ class MissionController extends Controller
         return response()->json(Mission::all());
     }
 
+    public function create()
+    {
+        $rovers = Rover::all();
+        $maps = Map::all();
+        
+        return view('missions.create', compact('rovers', 'maps'));
+    }
+
+    public function moveView($id)
+    {
+        return view('missions.move', ['missionId' => $id]);
+    }
+
     public function store(Request $request)
     {
         $request->validate([

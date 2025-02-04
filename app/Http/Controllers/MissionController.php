@@ -44,6 +44,16 @@ class MissionController extends Controller
             'movements' => json_encode([])
         ]);
 
+        // Obtener el mapa seleccionado
+        $map = Map::findOrFail($request->map_id);
+
+        // Comprobar si hay un obstáculo en las coordenadas dadas
+        if ($this->isObstacle($map, $request->x, $request->y)) {
+            return response()->json([
+                'error' => "No se puede crear la misión en ($request->x, $request->y), hay un obstáculo."
+            ], 400);
+        }
+        
         return response()->json($mission, 201);
     }
 

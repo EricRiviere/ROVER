@@ -79,11 +79,11 @@ class MissionController extends Controller
         $mission = Mission::findOrFail($id);
         $rover = Rover::findOrFail($mission->rover_id);
         $map = Map::findOrFail($mission->map_id);
-
+    
         $request->validate([
             'commands' => 'required|string'
         ]);
-
+    
         $commands = str_split($request->commands);
         $validCommands = ['F', 'L', 'R'];
         
@@ -92,12 +92,13 @@ class MissionController extends Controller
                 return response()->json(['error' => 'Comando inválido'], 400);
             }
         }
-
+    
         $direction = $rover->direction;
         $x = $mission->x;
         $y = $mission->y;
         $executedCommands = [];
-
+        $abortMessage = null; // Inicializamos el mensaje de aborto como nulo.
+    
         foreach ($commands as $command) {
             if ($command === 'L') {
                 $direction = $this->turnLeft($direction);
@@ -105,18 +106,27 @@ class MissionController extends Controller
                 $direction = $this->turnRight($direction);
             } elseif ($command === 'F') {
                 [$newX, $newY] = $this->calculateNewPosition($x, $y, $direction);
-
-                if ($this->isOutOfBounds($newX, $newY) || $this->isObstacle($map, $newX, $newY)) {
-                    break;
+    
+                // Comprobamos si se encuentra un obstáculo o si está fuera de los límites.
+                if ($this->isOutOfBounds($newX, $newY)) {
+                    $abortMessage = 'Comando abortado por límite de mapa';
+                    break; // Abortamos el comando si está fuera de límites.
+                }
+    
+                if ($this->isObstacle($map, $newX, $newY)) {
+                    $abortMessage = "Comando abortado para evitar colisión con obstáculo en las coordenadas ($newX, $newY)";
+                    break; // Abortamos el comando si hay un obstáculo.
                 }
                 
+                // Si no aborto, actualizamos la posición.
                 $x = $newX;
                 $y = $newY;
             }
-
+    
             $executedCommands[] = $command;
         }
-
+    
+        // Actualizamos la misión con los nuevos valores, o con el mensaje de abortar si aplica.
         $mission->update([
             'x' => $x,
             'y' => $y,
@@ -125,11 +135,21 @@ class MissionController extends Controller
                 'commands' => implode('', $executedCommands)
             ]])
         ]);
-
+    
         $rover->update(['direction' => $direction]);
-
+    
+        // Si aborto, retornamos el mensaje apropiado.
+        if ($abortMessage) {
+            return response()->json([
+                'abort_message' => $abortMessage,
+                'mission' => $mission
+            ]);
+        }
+    
+        // Si no aborto, retornamos la misión normalmente.
         return response()->json($mission);
     }
+    
 
     private function turnLeft($direction)
     {

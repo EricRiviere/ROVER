@@ -53,6 +53,16 @@
                             </div>
                         </div>
 
+                        <div class="mb-3">
+                            <label for="direction" class="form-label">Dirección Inicial:</label>
+                            <select id="direction" class="form-select bg-dark text-light border-light">
+                                <option value="N">Norte (N)</option>
+                                <option value="S">Sur (S)</option>
+                                <option value="E">Este (E)</option>
+                                <option value="W">Oeste (W)</option>
+                            </select>
+                        </div>
+
                         <div class="text-center mt-4">
                             <button type="button" id="startMission" class="btn btn-dark w-100">🚀 Iniciar Misión</button>
                         </div>
@@ -67,25 +77,46 @@
             let button = document.getElementById("startMission");
             button.innerHTML = "🚀 Enviando...";
             button.disabled = true;
-    
-            let data = {
-                rover_id: document.getElementById("rover_id").value,
-                map_id: document.getElementById("map_id").value,
-                x: document.getElementById("x").value,
-                y: document.getElementById("y").value
-            };
-    
-            fetch("http://127.0.0.1:8000/api/missions", {
-                method: "POST",
+
+            let roverId = document.getElementById("rover_id").value;
+            let direction = document.getElementById("direction").value;
+
+            // Actualizar dirección del rover
+            fetch(`http://127.0.0.1:8000/api/rovers/${roverId}`, {
+                method: "PUT",
                 headers: {
                     "Content-Type": "application/json",
                     "Accept": "application/json",
                 },
-                body: JSON.stringify(data)
+                body: JSON.stringify({ direction: direction })
             })
             .then(response => {
                 if (!response.ok) {
-                    throw new Error("Error en la solicitud");
+                    throw new Error("Error al actualizar la dirección del rover");
+                }
+                return response.json();
+            })
+            .then(() => {
+                // Si la actualización es exitosa, crear la misión
+                let data = {
+                    rover_id: roverId,
+                    map_id: document.getElementById("map_id").value,
+                    x: document.getElementById("x").value,
+                    y: document.getElementById("y").value
+                };
+
+                return fetch("http://127.0.0.1:8000/api/missions", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Accept": "application/json",
+                    },
+                    body: JSON.stringify(data)
+                });
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error("Error en la solicitud de la misión");
                 }
                 return response.json();
             })
@@ -94,7 +125,7 @@
                 window.location.href = `/move/${missionId}`; // Redirigir a move.blade.php
             })
             .catch(error => {
-                alert("❌ Error al enviar la misión.");
+                alert("❌ Error al iniciar la misión.");
                 console.error("Error:", error);
             })
             .finally(() => {

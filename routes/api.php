@@ -12,4 +12,6 @@ Route::middleware('api')->group(function () {
     Route::apiResource('rovers', RoverController::class);
     Route::apiResource('obstacles', ObstacleController::class);
     Route::apiResource('missions', MissionController::class);
+    
+    Route::post('/missions/{id}/move', [MissionController::class, 'move']);
 });

@@ -21,8 +21,8 @@ class MapController extends Controller
     {
         $request->validate([
             'name' => 'required|string',
-            'width' => 'required|integer|min:100|max:200',
-            'height' => 'required|integer|min:100|max:200',
+            'width' => 'required|integer|min:200|max:200',
+            'height' => 'required|integer|min:200|max:200',
         ]);
 
         try {
@@ -71,8 +71,8 @@ class MapController extends Controller
     {
         $request->validate([
             'name' => 'string',
-            'width' => 'integer|min:1',
-            'height' => 'integer|min:1',
+            'width' => 'integer|min:200 | max:200',
+            'height' => 'integer|min:200| max:200',
         ]);
 
         try {

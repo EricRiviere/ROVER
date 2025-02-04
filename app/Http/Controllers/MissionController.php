@@ -19,8 +19,8 @@ class MissionController extends Controller
         $request->validate([
             'rover_id' => 'required|exists:rovers,id',
             'map_id' => 'required|exists:maps,id',
-            'x' => 'required|integer|min:100|max:200',
-            'y' => 'required|integer|min:100|max:200'
+            'x' => 'required|integer|min:0|max:200',
+            'y' => 'required|integer|min:0|max:200'
         ]);
 
         $mission = Mission::create([
@@ -44,8 +44,8 @@ class MissionController extends Controller
         $mission = Mission::findOrFail($id);
 
         $request->validate([
-            'x' => 'integer|min:100|max:200',
-            'y' => 'integer|min:100|max:200',
+            'x' => 'integer|min:0|max:200',
+            'y' => 'integer|min:0|max:200',
             'movements' => 'array'
         ]);
 
@@ -96,7 +96,7 @@ class MissionController extends Controller
                 if ($this->isOutOfBounds($newX, $newY) || $this->isObstacle($map, $newX, $newY)) {
                     break;
                 }
-
+                
                 $x = $newX;
                 $y = $newY;
             }
@@ -112,6 +112,8 @@ class MissionController extends Controller
                 'commands' => implode('', $executedCommands)
             ]])
         ]);
+
+        $rover->update(['direction' => $direction]);
 
         return response()->json($mission);
     }
@@ -151,12 +153,13 @@ class MissionController extends Controller
 
     private function isOutOfBounds($x, $y)
     {
-        return $x < 100 || $x > 200 || $y < 100 || $y > 200;
+        return $x < 0 || $x > 200 || $y < 0 || $y > 200;
     }
 
     private function isObstacle($map, $x, $y)
     {
-        return in_array(['x' => $x, 'y' => $y], json_decode($map->obstacles, true));
+        $obstacles = json_decode($map->obstacles, true);
+        return !empty(array_filter($obstacles, fn($obstacle) => $obstacle['x'] == $x && $obstacle['y'] == $y));
     }
 }
 

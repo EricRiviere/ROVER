@@ -9,3 +9,4 @@ Route::get('/', function () {
 
 Route::get('/missions/create', [MissionController::class, 'create'])->name('missions.create');
 Route::get('/move/{id}', [MissionController::class, 'moveView'])->name('missions.moveView');
+Route::get('/mission/{id}/map', [MissionController::class, 'showMap'])->name('missions.showMap');

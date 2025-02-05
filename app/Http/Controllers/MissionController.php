@@ -6,9 +6,17 @@ use Illuminate\Http\Request;
 use App\Models\Mission;
 use App\Models\Rover;
 use App\Models\Map;
+use App\Models\ExplorationMap;
+use App\Services\ExplorationMapService;
 
 class MissionController extends Controller
 {
+    protected $explorationMapService;
+
+    public function __construct(ExplorationMapService $explorationMapService)
+    {
+        $this->explorationMapService = $explorationMapService;
+    }
     public function index()
     {
         return response()->json(Mission::all());
@@ -27,6 +35,26 @@ class MissionController extends Controller
         return view('missions.move', ['missionId' => $id]);
     }
 
+    public function showMap($id)
+    {
+        // Obtener la misión
+        $mission = Mission::findOrFail($id);
+        // Obtener el rover relacionado
+        $rover = Rover::findOrFail($mission->rover_id);
+        // Obtener el mapa de exploración de la misión
+        $explorationMap = ExplorationMap::where('mission_id', $mission->id)->first();
+    
+        // Obtener los datos de exploración (casillas exploradas y obstáculos)
+        if (is_array($explorationMap->exploration_data)) {
+            $explorationData = $explorationMap->exploration_data;
+        } else {
+            $explorationData = json_decode($explorationMap->exploration_data, true);
+        }
+    
+        // Pasar $missionId junto con las otras variables
+        return view('missions.showMap', compact('mission', 'rover', 'explorationData'));
+    }    
+
     public function store(Request $request)
     {
         $request->validate([
@@ -36,13 +64,24 @@ class MissionController extends Controller
             'y' => 'required|integer|min:0|max:200'
         ]);
 
+        // Primero, creamos el mapa de exploración
+        $explorationMap = ExplorationMap::create([
+            'mission_id' => null,
+            'map_id' => $request->map_id
+        ]);
+        
         $mission = Mission::create([
             'rover_id' => $request->rover_id,
             'map_id' => $request->map_id,
             'x' => $request->x,
             'y' => $request->y,
+            'exploration_map_id' => $explorationMap->id,
             'movements' => json_encode([])
         ]);
+
+        // Asociamos la misión al mapa de exploración
+        $explorationMap->mission_id = $mission->id;
+        $explorationMap->save();
 
         // Obtener el mapa seleccionado
         $map = Map::findOrFail($request->map_id);
@@ -53,7 +92,7 @@ class MissionController extends Controller
                 'error' => "No se puede crear la misión en ($request->x, $request->y), hay un obstáculo."
             ], 400);
         }
-        
+
         return response()->json($mission, 201);
     }
 
@@ -84,11 +123,24 @@ class MissionController extends Controller
         return response()->json(null, 204);
     }
 
+    public function finishMission($id)
+    {
+        $mission = Mission::findOrFail($id);
+        
+        // Marcar misión como terminada
+        $mission->update(['mission_status' => 'finished']);
+
+        return response()->json([
+            'message' => 'Misión finalizada',
+            'mission' => $mission
+        ]);
+    }
     public function move(Request $request, $id)
     {
         $mission = Mission::findOrFail($id);
         $rover = Rover::findOrFail($mission->rover_id);
         $map = Map::findOrFail($mission->map_id);
+        $explorationMap = ExplorationMap::where('mission_id', $mission->id)->first(); // Obtener el mapa de exploración para la misión
     
         $request->validate([
             'commands' => 'required|string'
@@ -124,6 +176,7 @@ class MissionController extends Controller
                 }
     
                 if ($this->isObstacle($map, $newX, $newY)) {
+                    $this->explorationMapService->registerExplorationData($explorationMap->id, $newX, $newY, 'obstacle');
                     $abortMessage = "Comando abortado para evitar colisión con obstáculo en las coordenadas ($newX, $newY)";
                     break; // Abortamos el comando si hay un obstáculo.
                 }
@@ -131,6 +184,7 @@ class MissionController extends Controller
                 // Si no aborto, actualizamos la posición.
                 $x = $newX;
                 $y = $newY;
+                $this->explorationMapService->registerExplorationData($explorationMap->id, $x, $y, 'explored');
             }
     
             $executedCommands[] = $command;
@@ -140,10 +194,10 @@ class MissionController extends Controller
         $mission->update([
             'x' => $x,
             'y' => $y,
-            'movements' => json_encode([...json_decode($mission->movements, true), [
+            'movements' => [...$mission->movements, [
                 'position' => ['x' => $x, 'y' => $y],
                 'commands' => implode('', $executedCommands)
-            ]])
+            ]]
         ]);
     
         $rover->update(['direction' => $direction]);

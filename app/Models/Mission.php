@@ -9,10 +9,14 @@ class Mission extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['rover_id', 'map_id', 'x', 'y', 'movements'];
+    protected $fillable = ['rover_id', 'map_id', 'x', 'y', 'movements', 'mission_status', 'exploration_map_id',];
 
     protected $casts = [
         'movements' => 'array',
+    ];
+
+    protected $attributes = [
+        'mission_status' => 'active',
     ];
 
     public function rover()
@@ -23,6 +27,11 @@ class Mission extends Model
     public function map()
     {
         return $this->belongsTo(Map::class);
+    }
+
+    public function explorationMap()
+    {
+        return $this->belongsTo(ExplorationMap::class, 'exploration_map_id');
     }
 }
 

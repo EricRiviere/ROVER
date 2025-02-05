@@ -27,6 +27,10 @@
                 <div class="text-center mt-4">
                     <button type="button" id="sendCommands" class="btn btn-dark w-100">🚀 Enviar Comandos</button>
                 </div>
+
+                <div class="text-center mt-4">
+                    <button type="button" id="finishMission" class="btn btn-danger w-100">🚨 Finalizar Misión</button>
+                </div>                
             </form>
 
             <!-- Exploración de la Misión -->
@@ -241,6 +245,40 @@
                 button.disabled = false;
             });
         });
+
+        // Finalizar misión
+        document.getElementById("finishMission").addEventListener("click", function() {
+            let button = document.getElementById("finishMission");
+
+            button.innerHTML = "⏳ Finalizando...";
+            button.disabled = true;
+
+            // Realizar la solicitud de finalizar misión
+            fetch(`http://127.0.0.1:8000/api/missions/${missionId}/finish`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Accept": "application/json",
+                }
+            })
+            .then(response => {
+                if (!response.ok) throw new Error("Error al finalizar la misión");
+                return response.json();
+            })
+            .then(data => {
+                alert("✅ Misión finalizada con éxito");
+                window.location.href = "http://localhost:8000/missions/create"; // Redirigir a la página de creación de misiones
+            })
+            .catch(error => {
+                alert("❌ Error al finalizar la misión.");
+                console.error("Error:", error);
+            })
+            .finally(() => {
+                button.innerHTML = "🚨 Finalizar Misión";
+                button.disabled = false;
+            });
+        });
+
     </script>
 </body>
 

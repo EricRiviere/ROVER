@@ -122,7 +122,7 @@
             })
             .then(data => {
                 let missionId = data.id; // Obtener el ID de la misión creada
-                window.location.href = `/move/${missionId}`; // Redirigir a move.blade.php
+                window.location.href = `/mission/${missionId}/map`; // Redirigir a showMap.blade.php
             })
             .catch(error => {
                 alert("❌ Error al iniciar la misión.");

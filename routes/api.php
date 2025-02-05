@@ -17,6 +17,7 @@ Route::middleware('api')->group(function () {
 
     Route::post('/missions/{id}/move', [MissionController::class, 'move']);
     Route::post('/missions/{missionId}/exploration-map', [ExplorationMapsController::class, 'createForMission']);
+    Route::post('/missions/{id}/finish', [MissionController::class, 'finishMission']);
     Route::post('/exploration-maps/{explorationMapId}/explore-obstacle', [ExplorationMapsController::class, 'registerExplorationData']);
     Route::get('/exploration-maps/{explorationMapId}/exploration-data', [ExplorationMapsController::class, 'getExplorationData']);
 });

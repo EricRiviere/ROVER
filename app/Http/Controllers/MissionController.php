@@ -76,7 +76,7 @@ class MissionController extends Controller
             'x' => $request->x,
             'y' => $request->y,
             'exploration_map_id' => $explorationMap->id,
-            'movements' => json_encode([])
+            'movements' => [],
         ]);
 
         // Asociamos la misión al mapa de exploración

@@ -90,17 +90,33 @@
                 });
         }
 
-
-        // Función para obtener los datos de exploración
         function fetchExplorationData() {
-            fetch(`http://127.0.0.1:8000/api/exploration-maps/3/exploration-data`)
-            .then(response => response.json())
-            .then(explorationData => {
-                updateExplorationData(explorationData);
-            })
-            .catch(error => {
-                console.error("Error al obtener los datos de exploración:", error);
-            });
+            let explorationMapId = null;
+
+            // Paso 1: Obtener el exploration_map_id de la misión
+            fetch(`http://127.0.0.1:8000/api/missions/${missionId}`)
+                .then(response => {
+                    if (!response.ok) throw new Error("Error al obtener la misión");
+                    return response.json();
+                })
+                .then(data => {
+                    explorationMapId = data.exploration_map_id; // Guardamos el exploration_map_id
+                    if (!explorationMapId) throw new Error("exploration_map_id no disponible");
+
+                    // Paso 2: Usar explorationMapId para hacer fetch de los datos de exploración
+                    return fetch(`http://127.0.0.1:8000/api/exploration-maps/${explorationMapId}/exploration-data`);
+                })
+                .then(response => {
+                    if (!response.ok) throw new Error("Error al obtener los datos de exploración");
+                    return response.json();
+                })
+                .then(explorationData => {
+                    // Usar la función para actualizar los datos de exploración
+                    updateExplorationData(explorationData);
+                })
+                .catch(error => {
+                    console.error("Error al obtener los datos de exploración:", error);
+                });
         }
 
         // Función para actualizar el mapa con la información de la exploración
@@ -108,8 +124,8 @@
             const grid = document.getElementById("explorationGrid");
 
             // Iterar sobre cada celda de datos de exploración
-            for (let x = 0; x < 200; x++) {
-                for (let y = 0; y < 200; y++) {
+            for (let x = 0; x < 201; x++) {
+                for (let y = 0; y < 201; y++) {
                     // Crear una nueva celda
                     const cell = document.createElement("div");
                     cell.style.width = "10px";

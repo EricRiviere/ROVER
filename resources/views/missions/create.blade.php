@@ -66,6 +66,9 @@
                         <div class="text-center mt-4">
                             <button type="button" id="startMission" class="btn btn-dark w-100">🚀 Iniciar Misión</button>
                         </div>
+                        <div class="text-center mt-4 mb-4">
+                            <a href="http://localhost:8000/dashboard" class="btn btn-dark w-100">Volver al Dashboard</a>
+                        </div>
                     </form>
                 </div>
             </div>

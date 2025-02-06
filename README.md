@@ -57,6 +57,11 @@ Run the migrations:
 php artisan migrate
 ```
 
+Create application key:
+
+```bash
+php artisan key:generate
+```
 Start the local server:
 
 ```bash
